@@ -19,10 +19,10 @@ steps:
   inputs:
     mavenPomFile: 'pom.xml'
     mavenOptions: '-Xmx3072m'
-    jdkVersionOption: '21'  # Specify JDK 21 for the build
-    javaHomeOption: 'JDK21'  # Ensure this points to JDK 21
+    javaHomeOption: 'JDKUserInputPath'  # Specify JDK path using JDKUserInputPath
+    jdkUserInputPath: 'C:\Program Files\Java\jdk-23'  # Specify the JDK path here
+    jdkVersionOption: '23'  # Specify JDK version 23 for the build
     jdkArchitectureOption: 'x64'
-    jdkUserInputPath: 'C:\Program Files\Java\jdk-21'  # Provide custom JDK path
     mavenVersionOption: 'Default'
     publishJUnitResults: true
     testResultsFiles: '**/surefire-reports/TEST-*.xml'
