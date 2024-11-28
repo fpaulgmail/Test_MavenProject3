@@ -7,7 +7,10 @@ trigger:
 - main
 
 pool:
-  vmImage: ubuntu-latest
+  name: 'Default'  # This is the name of your agent pool, 'Default' is common, but you can use a custom name if you've created one
+  demands:
+    - agent.name -equals 'FEMI'  # Replace 'FEMI' with the name of your self-hosted agent if different
+
 
 steps:
 - task: Maven@3
