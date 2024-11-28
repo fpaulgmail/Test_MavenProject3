@@ -19,9 +19,10 @@ steps:
   inputs:
     mavenPomFile: 'pom.xml'
     mavenOptions: '-Xmx3072m'
-    javaHomeOption: 'JDKVersion'
-    jdkVersionOption: '1.11'
-    jdkArchitectureOption: 'x64'
+    jdkVersionOption: '21'  # Specify JDK 21 for the build
+    javaHomeOption: 'JDK21'  # Ensure this is also JDK 21
+    jdkArchitectureOption: 'x64'  # Architecture of the JDK
+    mavenVersionOption: 'Default'  # Use the default Maven version installed
     publishJUnitResults: true
     testResultsFiles: '**/surefire-reports/TEST-*.xml'
     goals: 'package'
