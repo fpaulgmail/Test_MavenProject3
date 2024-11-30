@@ -29,7 +29,8 @@ steps:
     goals: 'package'
 - task: CopyFiles@2
   inputs:
-    Contents: '**/*.war'  # Corrected to match WAR files
+    SourceFolder: '$(Build.SourcesDirectory)/webapp/target'
+    Contents: '**/*'  
     TargetFolder: '$(Build.ArtifactStagingDirectory)'
 - task: PublishBuildArtifacts@1
   inputs:
