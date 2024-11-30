@@ -1,8 +1,3 @@
-# Maven
-# Build your Java project and run tests with Apache Maven.
-# Add steps that analyze code, save build artifacts, deploy, and more:
-# https://docs.microsoft.com/azure/devops/pipelines/languages/java
-
 trigger:
 - main
 
@@ -11,29 +6,53 @@ pool:
   demands:
   - maven
   - Agent.Version -gtVersion 2.163.1
-#    - agent.name -equals 'FEMI'  # Replace 'FEMI' with the name of your self-hosted agent if different
 
+# Define the stages for multi-stage pipeline
+stages:
+# Build Stage
+- stage: Build
+  displayName: Build Application
+  jobs:
+  - job: BuildJob
+    displayName: Build Job
+    steps:
+    - task: Maven@3
+      inputs:
+        mavenPomFile: 'pom.xml'
+        mavenOptions: '-Xmx3072m'
+        javaHomeOption: 'JDKUserInputPath'
+        jdkUserInputPath: 'C:\Program Files\Java\jdk-23'
+        jdkVersionOption: '23'
+        jdkArchitectureOption: 'x64'
+        mavenVersionOption: 'Default'
+        publishJUnitResults: true
+        testResultsFiles: '**/surefire-reports/TEST-*.xml'
+        goals: 'package'
+    - task: CopyFiles@2
+      inputs:
+        SourceFolder: '$(Build.SourcesDirectory)/webapp/target'
+        Contents: '**/*'  
+        TargetFolder: '$(Build.ArtifactStagingDirectory)'
+    - task: PublishBuildArtifacts@1
+      inputs:
+        PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+        ArtifactName: 'warfile'
+        publishLocation: 'Container'
 
-steps:
-- task: Maven@3
-  inputs:
-    mavenPomFile: 'pom.xml'
-    mavenOptions: '-Xmx3072m'
-    javaHomeOption: 'JDKUserInputPath'  # Specify JDK path using JDKUserInputPath
-    jdkUserInputPath: 'C:\Program Files\Java\jdk-23'  # Specify the JDK path here
-    jdkVersionOption: '23'  # Specify JDK version 23 for the build
-    jdkArchitectureOption: 'x64'
-    mavenVersionOption: 'Default'
-    publishJUnitResults: true
-    testResultsFiles: '**/surefire-reports/TEST-*.xml'
-    goals: 'package'
-- task: CopyFiles@2
-  inputs:
-    SourceFolder: '$(Build.SourcesDirectory)/webapp/target'
-    Contents: '**/*'  
-    TargetFolder: '$(Build.ArtifactStagingDirectory)'
-- task: PublishBuildArtifacts@1
-  inputs:
-    PathtoPublish: '$(Build.ArtifactStagingDirectory)'
-    ArtifactName: 'warfile'
-    publishLocation: 'Container'
+# Deploy Stage
+- stage: Deploy
+  displayName: Deploy Application
+  dependsOn: Build
+  jobs:
+  - job: DeployJob
+    displayName: Deploy to Server
+    steps:
+    - task: DownloadPipelineArtifact@2
+      inputs:
+        artifactName: 'warfile'
+        targetPath: '$(Pipeline.Workspace)'  # Downloads the artifact to the workspace
+    - script: |
+        echo Deploying application...
+        # Example deployment script
+        copy "$(Pipeline.Workspace)\**\*.war" "C:\target\deployment\directory"
+      displayName: Deploy Application
