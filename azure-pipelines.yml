@@ -2,12 +2,12 @@ trigger:
 - main
 
 pool:
-  name: 'Default'  # This is the name of your agent pool, 'Default' is common, but you can use a custom name if you've created one
+  name: 'Default'  # Ensure this matches your actual agent pool name
   demands:
   - maven
   - Agent.Version -gtVersion 2.163.1
 
-# Define the stages for multi-stage pipeline
+# Define the stages for the multi-stage pipeline
 stages:
 # Build Stage
 - stage: Build
@@ -18,7 +18,7 @@ stages:
     steps:
     - task: Maven@3
       inputs:
-        mavenPomFile: 'pom.xml'
+        mavenPomFile: 'webapp/pom.xml'  # Ensure correct path to your pom.xml
         mavenOptions: '-Xmx3072m'
         javaHomeOption: 'JDKUserInputPath'
         jdkUserInputPath: 'C:\Program Files\Java\jdk-23'
@@ -28,11 +28,15 @@ stages:
         publishJUnitResults: true
         testResultsFiles: '**/surefire-reports/TEST-*.xml'
         goals: 'package'
+
+    # Ensure that the target directory exists before copying files
     - task: CopyFiles@2
       inputs:
-        SourceFolder: '$(Build.SourcesDirectory)/webapp/target'
-        Contents: '**/*'  
-        TargetFolder: '$(Build.ArtifactStagingDirectory)'
+        SourceFolder: '$(Build.SourcesDirectory)/webapp/target'  # Adjust if needed, check the output location
+        Contents: '**/*.war'  # Ensure that the WAR files are being outputted by Maven
+        TargetFolder: '$(Build.ArtifactStagingDirectory)'  # Artifact staging directory
+
+    # Publish the build artifacts so they can be used in the deploy stage
     - task: PublishBuildArtifacts@1
       inputs:
         PathtoPublish: '$(Build.ArtifactStagingDirectory)'
@@ -51,8 +55,9 @@ stages:
       inputs:
         artifactName: 'warfile'
         targetPath: '$(Pipeline.Workspace)'  # Downloads the artifact to the workspace
+    
     - script: |
         echo Deploying application...
-        # Example deployment script
-        copy "$(Pipeline.Workspace)\**\*.war" "C:\target\deployment\directory"
+        # Ensure the deployment path is correct
+        copy "$(Pipeline.Workspace)\warfile\**\*.war" "C:\target\deployment\directory"
       displayName: Deploy Application
