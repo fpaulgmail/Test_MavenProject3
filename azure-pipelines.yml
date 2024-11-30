@@ -54,12 +54,22 @@ stages:
     - task: DownloadPipelineArtifact@2
       inputs:
         artifactName: 'warfile'
-        targetPath: '$(Pipeline.Workspace)'  # Downloads the artifact to the workspace
+        targetPath: '$(Pipeline.Workspace)\warfile'  # Make sure this is the correct download location
     
+    # Debugging step to list contents of the workspace folder
+    - script: |
+        echo "Listing contents of downloaded artifact folder..."
+        dir "$(Pipeline.Workspace)\warfile"
+      displayName: 'List Downloaded Artifact Contents'
+    
+    # Ensure the target directory exists before copying the files
+    - script: |
+        echo "Creating target directory if it doesn't exist..."
+        mkdir C:\target\deployment\directory
+      displayName: 'Create Deployment Directory'
+
     - script: |
         echo Deploying application...
-        REM Example deployment script
         REM Copy WAR files from the downloaded artifacts to the deployment directory
         copy "$(Pipeline.Workspace)\warfile\**\*.war" "C:\target\deployment\directory"
       displayName: Deploy Application
-
