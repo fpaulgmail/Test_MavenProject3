@@ -58,6 +58,8 @@ stages:
     
     - script: |
         echo Deploying application...
-        # Ensure the deployment path is correct
+        REM Example deployment script
+        REM Copy WAR files from the downloaded artifacts to the deployment directory
         copy "$(Pipeline.Workspace)\warfile\**\*.war" "C:\target\deployment\directory"
       displayName: Deploy Application
+
