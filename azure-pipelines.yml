@@ -43,23 +43,23 @@ stages:
         ArtifactName: 'warfile'
         publishLocation: 'Container'
 
-# Deploy Stage
-- stage: Deploy
-  displayName: Deploy Application
-  dependsOn: Build
-  jobs:
-  - job: DeployJob
-    displayName: Deploy to Server
-    steps:
-    - task: DownloadPipelineArtifact@2
-      inputs:
-        artifactName: 'warfile'
-        targetPath: '$(Pipeline.Workspace)'  # Downloads the artifact to the workspace
+# # Deploy Stage
+# - stage: Deploy
+#   displayName: Deploy Application
+#   dependsOn: Build
+#   jobs:
+#   - job: DeployJob
+#     displayName: Deploy to Server
+#     steps:
+#     - task: DownloadPipelineArtifact@2
+#       inputs:
+#         artifactName: 'warfile'
+#         targetPath: '$(Pipeline.Workspace)'  # Downloads the artifact to the workspace
     
-    - script: |
-        echo Deploying application...
-        REM Example deployment script
-        REM Copy WAR files from the downloaded artifacts to the deployment directory
-        copy "$(Pipeline.Workspace)\warfile\**\*.war" "C:\target\deployment\directory"
-      displayName: Deploy Application
+#     - script: |
+#         echo Deploying application...
+#         REM Example deployment script
+#         REM Copy WAR files from the downloaded artifacts to the deployment directory
+#         copy "$(Pipeline.Workspace)\warfile\**\*.war" "C:\target\deployment\directory"
+#       displayName: Deploy Application
 
