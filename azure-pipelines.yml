@@ -4,11 +4,10 @@ trigger:
 pool:
   name: 'Default'  # Ensure this matches your actual agent pool name
   demands:
-    - agent.name -equals FEMI  # Specify your agent's name (FEMI in this case) to ensure it's using the correct agent
+    - agent.name -equals FEMI  # Specify your agent's name (FEMI in this case)
     - maven  # Optional: Keep this if your build depends on Maven
     - Agent.Version -gtVersion 2.163.1
 
-# Define the stages for the multi-stage pipeline
 stages:
   # Build Stage
   - stage: Build
@@ -87,6 +86,6 @@ stages:
       # Restart Tomcat server
       - script: |
           echo Restarting Tomcat server...
-          net stop Tomcat10
-          net start Tomcat10
+          "C:\Users\femip\Downloads\apache-tomcat-10.1.33-windows-x64\apache-tomcat-10.1.33\bin\catalina.bat" stop
+          "C:\Users\femip\Downloads\apache-tomcat-10.1.33-windows-x64\apache-tomcat-10.1.33\bin\catalina.bat" start
         displayName: 'Restart Tomcat Server'
