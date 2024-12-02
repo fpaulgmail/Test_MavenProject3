@@ -73,9 +73,10 @@ stages:
               )
             displayName: 'Copy WAR to Tomcat'
    
-          # Restart Tomcat server
+          # Restart Tomcat manually (shutdown and startup)
           - script: |
-              echo Restarting Tomcat server...
-              net stop Tomcat10
-              net start Tomcat10
-            displayName: 'Restart Tomcat Server'
+              echo Stopping Tomcat server...
+              C:\path\to\tomcat\bin\shutdown.bat
+              echo Starting Tomcat server...
+              C:\path\to\tomcat\bin\startup.bat
+            displayName: 'Restart Tomcat Server Manually'
