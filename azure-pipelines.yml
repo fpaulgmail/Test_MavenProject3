@@ -72,11 +72,11 @@ stages:
                   copy "%%f" "C:\Users\femip\Downloads\apache-tomcat-10.1.33-windows-x64\apache-tomcat-10.1.33\webapps"
               )
             displayName: 'Copy WAR to Tomcat'
-   
+
           # Restart Tomcat manually (shutdown and startup)
           - script: |
               echo Stopping Tomcat server...
-              C:\path\to\tomcat\bin\shutdown.bat
+              C:\Users\femip\Downloads\apache-tomcat-10.1.33-windows-x64\apache-tomcat-10.1.33\bin\shutdown.bat
               echo Starting Tomcat server...
-              C:\path\to\tomcat\bin\startup.bat
+              C:\Users\femip\Downloads\apache-tomcat-10.1.33-windows-x64\apache-tomcat-10.1.33\bin\startup.bat
             displayName: 'Restart Tomcat Server Manually'
