@@ -4,76 +4,84 @@ trigger:
 pool:
   name: 'Default'  # Ensure this matches your actual agent pool name
   demands:
-  - maven
-  - Agent.Version -gtVersion 2.163.1
+    - agent.name -equals FEMI  # Specify your agent's name (FEMI in this case) to ensure it's using the correct agent
+    - maven  # Optional: Keep this if your build depends on Maven
+    - Agent.Version -gtVersion 2.163.1
 
 # Define the stages for the multi-stage pipeline
 stages:
-# Build Stage
-- stage: Build
-  displayName: Build Application
-  jobs:
-  - job: BuildJob
-    displayName: Build Job
-    steps:
-    - task: Maven@3
-      inputs:
-        mavenPomFile: 'webapp/pom.xml'  # Ensure correct path to your pom.xml
-        mavenOptions: '-Xmx3072m'
-        javaHomeOption: 'JDKUserInputPath'
-        jdkUserInputPath: 'C:\Program Files\Java\jdk-23'
-        jdkVersionOption: '23'
-        jdkArchitectureOption: 'x64'
-        mavenVersionOption: 'Default'
-        publishJUnitResults: true
-        testResultsFiles: '**/surefire-reports/TEST-*.xml'
-        goals: 'package'
+  # Build Stage
+  - stage: Build
+    displayName: Build Application
+    jobs:
+    - job: BuildJob
+      displayName: Build Job
+      steps:
+      - task: Maven@3
+        inputs:
+          mavenPomFile: 'webapp/pom.xml'  # Ensure correct path to your pom.xml
+          mavenOptions: '-Xmx3072m'
+          javaHomeOption: 'JDKUserInputPath'
+          jdkUserInputPath: 'C:\Program Files\Java\jdk-23'
+          jdkVersionOption: '23'
+          jdkArchitectureOption: 'x64'
+          mavenVersionOption: 'Default'
+          publishJUnitResults: true
+          testResultsFiles: '**/surefire-reports/TEST-*.xml'
+          goals: 'package'
 
-    # Ensure that the target directory exists before copying files
-    - task: CopyFiles@2
-      inputs:
-        SourceFolder: '$(Build.SourcesDirectory)/webapp/target'  # Adjust if needed, check the output location
-        Contents: '**/*.war'  # Ensure that the WAR files are being outputted by Maven
-        TargetFolder: '$(Build.ArtifactStagingDirectory)'  # Artifact staging directory
+      # Ensure that the target directory exists before copying files
+      - task: CopyFiles@2
+        inputs:
+          SourceFolder: '$(Build.SourcesDirectory)/webapp/target'  # Adjust if needed, check the output location
+          Contents: '**/*.war'  # Ensure that the WAR files are being outputted by Maven
+          TargetFolder: '$(Build.ArtifactStagingDirectory)'  # Artifact staging directory
 
-    # Publish the build artifacts so they can be used in the deploy stage
-    - task: PublishBuildArtifacts@1
-      inputs:
-        PathtoPublish: '$(Build.ArtifactStagingDirectory)'
-        ArtifactName: 'warfile'
-        publishLocation: 'Container'
+      # Publish the build artifacts so they can be used in the deploy stage
+      - task: PublishBuildArtifacts@1
+        inputs:
+          PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+          ArtifactName: 'warfile'
+          publishLocation: 'Container'
 
-# Deploy Stage
-- stage: Deploy
-  displayName: Deploy Application
-  dependsOn: Build
-  jobs:
-  - job: DeployJob
-    displayName: Deploy to Server
-    steps:
-    - task: DownloadPipelineArtifact@2
-      inputs:
-        artifactName: 'warfile'
-        targetPath: '$(Pipeline.Workspace)\warfile'  # Downloads the artifact to the specified path
+  # Deploy Stage
+  - stage: Deploy
+    displayName: Deploy Application
+    dependsOn: Build
+    jobs:
+    - job: DeployJob
+      displayName: Deploy to Server
+      steps:
+      # Download the artifact from the build stage
+      - task: DownloadPipelineArtifact@2
+        inputs:
+          artifactName: 'warfile'
+          targetPath: '$(Pipeline.Workspace)\warfile'  # Downloads the artifact to the specified path
 
-    # Debugging step to verify downloaded files
-    - script: |
-        echo "Listing contents of downloaded artifact folder..."
-        dir "$(Pipeline.Workspace)\warfile"
-      displayName: 'List Downloaded Artifact Contents'
+      # Debugging step to verify downloaded files
+      - script: |
+          echo "Listing contents of downloaded artifact folder..."
+          dir "$(Pipeline.Workspace)\warfile"
+        displayName: 'List Downloaded Artifact Contents'
 
-    # Ensure the target directory exists
-    - script: |
-        echo "Creating target directory if it doesn't exist..."
-        mkdir C:\target\deployment\directory
-      displayName: 'Create Deployment Directory'
+      # Ensure the target directory exists on the deployment machine
+      - script: |
+          echo "Creating target directory if it doesn't exist..."
+          mkdir C:\Users\femip\Downloads\apache-tomcat-10.1.33-windows-x64\apache-tomcat-10.1.33\webapps
+        displayName: 'Create Deployment Directory'
 
-    # Copy WAR files to the target directory
-    - script: |
-        echo Deploying application...
-        for /R "$(Pipeline.Workspace)\warfile" %%f in (*.war) do (
-            echo Copying %%f to C:\target\deployment\directory
-            copy "%%f" "C:\target\deployment\directory"
-        )
-      displayName: Deploy Application
+      # Copy WAR files to the target directory
+      - script: |
+          echo Deploying application...
+          for /R "$(Pipeline.Workspace)\warfile" %%f in (*.war) do (
+              echo Copying %%f to C:\Users\femip\Downloads\apache-tomcat-10.1.33-windows-x64\apache-tomcat-10.1.33\webapps
+              copy "%%f" "C:\Users\femip\Downloads\apache-tomcat-10.1.33-windows-x64\apache-tomcat-10.1.33\webapps"
+          )
+        displayName: 'Copy WAR to Tomcat'
 
+      # Restart Tomcat server
+      - script: |
+          echo Restarting Tomcat server...
+          net stop Tomcat10
+          net start Tomcat10
+        displayName: 'Restart Tomcat Server'
