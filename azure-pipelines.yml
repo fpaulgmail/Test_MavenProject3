@@ -66,8 +66,13 @@ stages:
 
       # Ensure the target directory exists on the deployment machine
       - script: |
-          echo "Creating target directory if it doesn't exist..."
-          mkdir C:\Users\femip\Downloads\apache-tomcat-10.1.33-windows-x64\apache-tomcat-10.1.33\webapps
+          echo "Checking if deployment directory exists..."
+          if not exist "C:\Users\femip\Downloads\apache-tomcat-10.1.33-windows-x64\apache-tomcat-10.1.33\webapps" (
+              echo "Directory does not exist. Creating now..."
+              mkdir "C:\Users\femip\Downloads\apache-tomcat-10.1.33-windows-x64\apache-tomcat-10.1.33\webapps"
+          ) else (
+              echo "Directory already exists. Skipping creation."
+          )
         displayName: 'Create Deployment Directory'
 
       # Copy WAR files to the target directory
