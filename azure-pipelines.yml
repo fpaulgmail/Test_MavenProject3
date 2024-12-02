@@ -2,13 +2,12 @@ trigger:
   - main
 
 pool:
-  name: 'Default'  # Ensure this matches your actual agent pool name
+  name: 'Default'
   demands:
-    - agent.name -equals FEMI  # Specify your agent's name (FEMI in this case) to ensure it's using the correct agent
-    - maven  # Optional: Keep this if your build depends on Maven
+    - agent.name -equals FEMI
+    - maven
     - Agent.Version -gtVersion 2.163.1
 
-# Define the stages for the multi-stage pipeline
 stages:
   # Build Stage
   - stage: Build
@@ -19,7 +18,7 @@ stages:
         steps:
           - task: Maven@3
             inputs:
-              mavenPomFile: 'webapp/pom.xml'  # Ensure correct path to your pom.xml
+              mavenPomFile: 'webapp/pom.xml'
               mavenOptions: '-Xmx3072m'
               javaHomeOption: 'JDKUserInputPath'
               jdkUserInputPath: 'C:\Program Files\Java\jdk-23'
@@ -30,14 +29,12 @@ stages:
               testResultsFiles: '**/surefire-reports/TEST-*.xml'
               goals: 'package'
 
-          # Ensure that the target directory exists before copying files
           - task: CopyFiles@2
             inputs:
-              SourceFolder: '$(Build.SourcesDirectory)/webapp/target'  # Adjust if needed, check the output location
-              Contents: '**/*.war'  # Ensure that the WAR files are being outputted by Maven
-              TargetFolder: '$(Build.ArtifactStagingDirectory)'  # Artifact staging directory
+              SourceFolder: '$(Build.SourcesDirectory)/webapp/target'
+              Contents: '**/*.war'
+              TargetFolder: '$(Build.ArtifactStagingDirectory)'
 
-          # Publish the build artifacts so they can be used in the deploy stage
           - task: PublishBuildArtifacts@1
             inputs:
               PathtoPublish: '$(Build.ArtifactStagingDirectory)'
@@ -52,31 +49,32 @@ stages:
       - job: DeployJob
         displayName: Deploy to Tomcat
         steps:
-          # Download the artifact from the build stage
+          # Download artifact
           - task: DownloadPipelineArtifact@2
             inputs:
               artifactName: 'warfile'
               targetPath: 'C:\vsts-agent-win-x64-4.248.0\_work\1\warfile'
-   
+
           # Verify the downloaded artifact
           - script: |
               echo "Listing contents of downloaded artifact folder..."
               dir "C:\vsts-agent-win-x64-4.248.0\_work\1\warfile"
             displayName: 'Verify Artifact Contents'
    
-          # Deploy the application
+          # Copy WAR to Tomcat
           - script: |
-              echo Copying WAR file to Tomcat webapps folder...
+              echo "Copying WAR file to Tomcat webapps folder..."
               for /R "C:\vsts-agent-win-x64-4.248.0\_work\1\warfile" %%f in (*.war) do (
-                  echo Copying %%f to C:\Users\femip\Downloads\apache-tomcat-10.1.33-windows-x64\apache-tomcat-10.1.33\webapps
+                  echo "Copying %%f to C:\Users\femip\Downloads\apache-tomcat-10.1.33-windows-x64\apache-tomcat-10.1.33\webapps"
                   copy "%%f" "C:\Users\femip\Downloads\apache-tomcat-10.1.33-windows-x64\apache-tomcat-10.1.33\webapps"
               )
             displayName: 'Copy WAR to Tomcat'
 
           # Restart Tomcat manually (shutdown and startup)
           - script: |
-              echo Stopping Tomcat server...
+              echo "Stopping Tomcat server..."
               C:\Users\femip\Downloads\apache-tomcat-10.1.33-windows-x64\apache-tomcat-10.1.33\bin\shutdown.bat
-              echo Starting Tomcat server...
+              echo "Starting Tomcat server..."
               C:\Users\femip\Downloads\apache-tomcat-10.1.33-windows-x64\apache-tomcat-10.1.33\bin\startup.bat
             displayName: 'Restart Tomcat Server Manually'
+#14:12update
